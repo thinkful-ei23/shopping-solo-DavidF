@@ -1,4 +1,5 @@
 'use strict';
+/* global $ */
 
 const STORE = [
   {name: 'apples', checked: false},
@@ -69,7 +70,7 @@ function getItemIndexFromElement(item) {
 }
 
 function handleItemCheckClicked() {
-  $('.js-shopping-list').on('click',`.js-item-toggle`, event => {
+  $('.js-shopping-list').on('click','.js-item-toggle', event => {
     console.log('`handleItemCheckedClick` ran');
 
     const itemIndex = getItemIndexFromElement(event.currentTarget);
@@ -78,8 +79,18 @@ function handleItemCheckClicked() {
   });
 }
 
+function deleteItemList (itemIndex) {
+  STORE.splice(itemIndex, 1);
+}
+
 function handleDeleteItemClicked() {
-  console.log('`handleDeleteItemClicked` ran');
+  
+  $('.js-shopping-list').on('click', '.js-item-delete', event => {
+    const itemIndex = getItemIndexFromElement(event.currentTarget);
+    console.log('`handleDeleteItemClicked` ran');
+    deleteItemList(itemIndex);
+    renderShoppingList();
+  });
 }
 
 function handleShoppingList() {
