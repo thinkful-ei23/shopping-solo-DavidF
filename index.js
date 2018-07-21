@@ -1,12 +1,15 @@
 'use strict';
 /* global $ */
 
-const STORE = [
-  {name: 'apples', checked: false},
-  { name: 'oranges', checked: false },
-  { name: 'milk', checked: true },
-  { name: 'bread', checked: false }
-];
+const STORE = {
+  items : [
+    {name: 'apples', checked: false},
+    { name: 'oranges', checked: false },
+    { name: 'milk', checked: true },
+    { name: 'bread', checked: false }],
+  hideCheckedItems : false,
+  filtered : '',
+};
 
 
 function generateItemElement(item, itemIndex, template) {
@@ -21,6 +24,10 @@ function generateItemElement(item, itemIndex, template) {
         <button class="shopping-item-delete js-item-delete">
           <span class="button-label">delete</span>
         </button>
+        <form id="js-shopping-item-form">
+          <input type="text" name="shopping-list-edit" class="js-shopping-list-edit" placeholder="Rename item here">
+          <button type="submit" class="js-shopping-item-edit">edit</button>
+          </form> 
       </div>
     </li>`;
 }
@@ -31,19 +38,30 @@ function generateShoppingItemsString(shoppingList) {
 }
 
 function renderShoppingList() {
-  const shoppingListItemsString = generateShoppingItemsString(STORE);
+  let filteredItems = STORE.items;
+  if (STORE.hideCheckedItems === true) {
+    filteredItems = STORE.items.filter(function(item) {
+      return item.checked === false;
+    });
+  }
+  if (STORE.filtered !== '') {
+    filteredItems = STORE.items.filter(function (item) {
+      return item.name === STORE.filtered;    
+    });
+  }
+  $('.js-shopping-list-query').val('');
+  const shoppingListItemsString = generateShoppingItemsString(filteredItems);
   $('.js-shopping-list').html(shoppingListItemsString);
 }
 
+
 function addItemToShoppingList(itemName) {
-  STORE.push({name: itemName, checked: false});
+  STORE.items.push({name: itemName, checked: false});
 }
 
-
-function handleNewItemSubmit() {
+function handleAddItemSubmit() {
   $('#js-shopping-list-form').submit(function(event) {
-    event.preventDefault();
-
+    event.preventDefault();    
     const newItemName = $('.js-shopping-list-entry').val();
     $('.js-shopping-list-entry').val('');
     addItemToShoppingList(newItemName);
@@ -52,7 +70,7 @@ function handleNewItemSubmit() {
 }
 
 function toggleCheckedForListItem(itemIndex) {
-  STORE[itemIndex].checked = !STORE [itemIndex].checked;
+  STORE.items[itemIndex].checked = !STORE.items[itemIndex].checked;
 }
 
 function getItemIndexFromElement(item) {
@@ -68,8 +86,23 @@ function handleItemCheckClicked() {
   });
 }
 
+function editItemName (itemIndex, newName) {
+  STORE.items[itemIndex].name = newName;
+}
+
+function handleEditItem() {
+  $('.js-shopping-list').on('submit', '#js-shopping-item-form', function (event) {
+    event.preventDefault();
+    const itemIndex = getItemIndexFromElement(event.currentTarget);
+    const newName = $('.js-shopping-list-edit').val();
+    console.log(newName);
+    editItemName(itemIndex, newName);
+    renderShoppingList();
+  });
+}
+
 function deleteItemList (itemIndex) {
-  STORE.splice(itemIndex, 1);
+  STORE.items.splice(itemIndex, 1);
 }
 
 function handleDeleteItemClicked() {
@@ -81,12 +114,41 @@ function handleDeleteItemClicked() {
   });
 }
 
+function handleCheckedOnlyBox () {
+  $('#filterChecked').on('change', () => {
+    STORE.hideCheckedItems = !STORE.hideCheckedItems;
+    renderShoppingList();
+  });
+}
+
+function searchShoppingList(itemName) {
+  //search array for items with matching name
+  $('#js-shopping-list-search-form').submit(function(event){
+    event.preventDefault();
+    const searchItemName = $('.js-shopping-list-query').val();
+    STORE.filtered = searchItemName;
+    renderShoppingList();
+  });
+}
+
+function handleBackToMain() {
+  $('.js-back-to-main').click(function(){
+    console.log(STORE.filtered);
+    STORE.filtered = '';
+    console.log(STORE.filtered);
+    renderShoppingList();
+  });
+}
+
 function handleShoppingList() {
   renderShoppingList();
-  handleNewItemSubmit();
+  handleAddItemSubmit();
   handleItemCheckClicked();
   handleDeleteItemClicked();
+  handleCheckedOnlyBox();
+  searchShoppingList();
+  handleBackToMain();
+  handleEditItem();
 }
 
 $(handleShoppingList);
-
